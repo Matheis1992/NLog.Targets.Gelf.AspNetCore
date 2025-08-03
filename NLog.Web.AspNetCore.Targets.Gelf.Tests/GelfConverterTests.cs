@@ -7,7 +7,7 @@ namespace NLog.Web.AspNetCore.Targets.Gelf.Tests
         [Fact]
         public void ShouldGetGelfJsonAddMappedDiagnosticsLogicalContextData()
         {
-            MappedDiagnosticsLogicalContext.Set("test", "value");
+            ScopeContext.PushProperty("test", "value");
 
             var logEvent = LogEventInfo.Create(LogLevel.Info, "loggerName", null, "message");
 
@@ -22,7 +22,7 @@ namespace NLog.Web.AspNetCore.Targets.Gelf.Tests
         [Fact]
         public void ShouldGetGelfJsonDiscardMappedDiagnosticsLogicalContextDataIfPresentInLogEventInfo()
         {
-            MappedDiagnosticsLogicalContext.Set("test", "value");
+            ScopeContext.PushProperty("test", "value");
             
             var logEvent = LogEventInfo.Create(LogLevel.Info, "loggerName", null, "message");
             logEvent.Properties.Add("test", "anotherValue");

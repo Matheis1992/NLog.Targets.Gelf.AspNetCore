@@ -1,16 +1,16 @@
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Text;
-using Newtonsoft.Json.Linq;
 
 namespace NLog.Web.AspNetCore.Targets.Gelf
 {
     public class GelfConverter : IConverter
     {
-        private const int ShortMessageMaxLength = 250;
+        private const int SHORT_MESSAGE_MAXLENGTH = 250;
+        private const int EXCEPTION_MESSAGE_DEPTH = 10;
 
         public JObject GetGelfJson(LogEventInfo logEventInfo, string facility, string gelfVersion = "1.0")
         {
@@ -33,19 +33,15 @@ namespace NLog.Web.AspNetCore.Targets.Gelf
 
             //Figure out the short message
             var shortMessage = logEventMessage;
-            if (shortMessage.Length > ShortMessageMaxLength)
+            if (shortMessage.Length > SHORT_MESSAGE_MAXLENGTH)
             {
-                shortMessage = shortMessage.Substring(0, ShortMessageMaxLength);
+                shortMessage = shortMessage.Substring(0, SHORT_MESSAGE_MAXLENGTH);
             }
 
             //Spec says: facility must be set by the client to "GELF" if empty
             facility = (string.IsNullOrEmpty(facility) ? "GELF" : facility);
-            string line = (logEventInfo.UserStackFrame != null)
-                ? logEventInfo.UserStackFrame.GetFileLineNumber().ToString(CultureInfo.InvariantCulture)
-                : string.Empty;
-            string file = (logEventInfo.UserStackFrame != null)
-                ? logEventInfo.UserStackFrame.GetFileName()
-                : string.Empty;
+            string line = logEventInfo.CallerLineNumber.ToString(CultureInfo.InvariantCulture);
+            string file = logEventInfo.CallerFilePath is null ? string.Empty : logEventInfo.CallerFilePath;
 
             JObject jsonObject;
 
@@ -87,15 +83,13 @@ namespace NLog.Web.AspNetCore.Targets.Gelf
             //Add any other interesting data to LogEventInfo properties
             logEventInfo.Properties.Add("LoggerName", logEventInfo.LoggerName);
 
-            // adding MappedDiagnosticsLogicalContext data
-            MappedDiagnosticsLogicalContext.GetNames()
-                .Select(n => (Name: n, Value: MappedDiagnosticsLogicalContext.GetObject(n)))
-                .ToList()
-                .ForEach(t =>
+            foreach (var property in ScopeContext.GetAllProperties())
+            {
+                if (logEventInfo.Properties.ContainsKey(property.Key) == false)
                 {
-                    if (!logEventInfo.Properties.ContainsKey(t.Name))
-                        logEventInfo.Properties.Add(t.Name, t.Value);
-                });
+                    logEventInfo.Properties.Add(property.Key, property.Value);
+                }
+            }
 
             //We will persist them "Additional Fields" according to Gelf spec
             foreach (var property in logEventInfo.Properties)
@@ -134,7 +128,7 @@ namespace NLog.Web.AspNetCore.Targets.Gelf
                 key = "id_";
 
             //According to the GELF spec, additional field keys should start with '_' to avoid collision
-            if (!key.StartsWith("_", StringComparison.OrdinalIgnoreCase))
+            if (key.StartsWith("_", StringComparison.OrdinalIgnoreCase) == false)
                 key = "_" + key;
 
             JToken value = null;
@@ -176,7 +170,7 @@ namespace NLog.Web.AspNetCore.Targets.Gelf
         }
 
         /// <summary>
-        /// Get the message details from all nested exceptions, up to 10 in depth.
+        /// Get the message details from all nested exceptions, up to EXCEPTION_MESSAGE_DEPTH in depth.
         /// </summary>
         /// <param name="ex">Exception to get details for</param>
         /// <param name="exceptionDetail">Exception message</param>
@@ -197,7 +191,7 @@ namespace NLog.Web.AspNetCore.Targets.Gelf
                 nestedException = nestedException.InnerException;
                 counter++;
             }
-            while (nestedException != null && counter < 11);
+            while (nestedException != null && counter <= EXCEPTION_MESSAGE_DEPTH);
 
             exceptionDetail = exceptionSb.ToString().Substring(0, exceptionSb.Length - 3);
             if (stackSb.Length > 0)
