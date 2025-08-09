@@ -1,22 +1,20 @@
-# NLog.Web.AspNetCore.Targets.Gelf
+# NLog.Targets.Gelf.AspNetCore
 Gelf4NLog is an [NLog] target implementation to push log messages to [GrayLog2]. It implements the [Gelf] specification and communicates with GrayLog server via UDP.
 
-[![NuGet version](https://badge.fury.io/nu/NLog.Web.AspNetCore.Targets.Gelf.svg)](https://badge.fury.io/nu/NLog.Web.AspNetCore.Targets.Gelf)
+[![NuGet version](https://badge.fury.io/nu/NLog.Targets.Gelf.AspNetCore.svg)](https://badge.fury.io/nu/NLog.Targets.Gelf.AspNetCore)
 
 ## History
-Code forked from https://github.com/GokGokalp/NLog.Web.AspNetCore.Targets.Gelf which is a fork from https://github.com/2020Legal/NLog.Targets.Gelf which is a fork from https://github.com/akurdyukov/Gelf4NLog who forked the origonal code from https://github.com/seymen/Gelf4NLog
-
-I transformed the project to .NET Core.
+Code forked from https://github.com/GokGokalp/NLog.Targets.Gelf.AspNetCore which is a fork from https://github.com/2020Legal/NLog.Targets.Gelf which is a fork from https://github.com/akurdyukov/Gelf4NLog who forked the origonal code from https://github.com/seymen/Gelf4NLog
 
 ## Usage
 Use Nuget:
 <!--- 
 ```
-$ dotnet add package NLog.Web.AspNetCore.Targets.Gelf
+$ dotnet add package NLog.Targets.Gelf.AspNetCore
 ```
 -->
 ```
-$ dotnet add package NLog.Web.AspNetCore.Targets.Gelf
+$ dotnet add package NLog.Targets.Gelf.AspNetCore
 ```
 ### Configuration
 Here is a sample nlog.config configuration file for graylog:
@@ -30,7 +28,7 @@ Here is a sample nlog.config configuration file for graylog:
       internalLogFile="c:\temp\internal-nlog.txt">
   <extensions>
     <add assembly="NLog.Web.AspNetCore"/>
-    <add assembly="NLog.Web.AspNetCore.Targets.Gelf"/>
+    <add assembly="NLog.Targets.Gelf.AspNetCore"/>
   </extensions>
   <targets>
     <target xsi:type="File" name="debugFile" filename="C:\@Logs\${shortdate}-${level}-${applicationName}.txt" layout="${longdate}|${level:upperCase=true}|${logger}|${aspnet-Request-Method}|url: ${aspnet-Request-Url}${aspnet-Request-QueryString}|${message}" concurrentWrites="false" />
