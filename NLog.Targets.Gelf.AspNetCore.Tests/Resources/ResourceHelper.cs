@@ -2,7 +2,7 @@ using System.IO;
 using System.Reflection;
 using Xunit;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf.Tests.Resources
+namespace NLog.Targets.Gelf.AspNetCore.Tests.Resources
 {
     internal class ResourceHelper
     {

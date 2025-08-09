@@ -8,7 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf
+namespace NLog.Targets.Gelf.AspNetCore
 {
     [Target("Gelf")]
     public class GelfTarget : TargetWithLayout

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf
+namespace NLog.Targets.Gelf.AspNetCore
 {
     public class UdpTransportClient : ITransportClient
     {

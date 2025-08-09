@@ -9,7 +9,7 @@
     <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.11" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NLog.Web.AspNetCore.Targets.Gelf\NLog.Web.AspNetCore.Targets.Gelf.csproj" />
+    <ProjectReference Include="..\NLog.Targets.Gelf.AspNetCore\NLog.Targets.Gelf.AspNetCore.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="nlog.config">

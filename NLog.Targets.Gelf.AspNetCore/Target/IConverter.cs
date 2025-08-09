@@ -1,6 +1,6 @@
 using Newtonsoft.Json.Linq;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf
+namespace NLog.Targets.Gelf.AspNetCore
 {
     public interface IConverter
     {

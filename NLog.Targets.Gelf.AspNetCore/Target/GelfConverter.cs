@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Net;
 using System.Text;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf
+namespace NLog.Targets.Gelf.AspNetCore
 {
     public class GelfConverter : IConverter
     {

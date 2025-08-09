@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf.Tests
+namespace NLog.Targets.Gelf.AspNetCore.Tests
 {
     public class GelfConverterTests
     {

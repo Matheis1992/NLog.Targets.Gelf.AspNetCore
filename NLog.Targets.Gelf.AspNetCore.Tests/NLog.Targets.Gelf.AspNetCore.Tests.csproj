@@ -13,10 +13,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NLog.Web.AspNetCore.Targets.Gelf\NLog.Web.AspNetCore.Targets.Gelf.csproj" />
+    <ProjectReference Include="..\NLog.Targets.Gelf.AspNetCore\NLog.Targets.Gelf.AspNetCore.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\NLog.Web.AspNetCore.Targets.Gelf.Tests\Resources\LongMessage.txt">
+    <EmbeddedResource Include="..\NLog.Targets.Gelf.AspNetCore.Tests\Resources\LongMessage.txt">
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

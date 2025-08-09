@@ -1,6 +1,6 @@
 ﻿using NLog.Config;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf.ConsoleRunner
+namespace NLog.Targets.Gelf.AspNetCore.ConsoleRunner
 {
     class Program
     {

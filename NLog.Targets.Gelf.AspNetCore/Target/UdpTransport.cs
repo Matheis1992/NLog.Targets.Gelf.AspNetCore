@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf
+namespace NLog.Targets.Gelf.AspNetCore
 {
     public class UdpTransport : ITransport
     {

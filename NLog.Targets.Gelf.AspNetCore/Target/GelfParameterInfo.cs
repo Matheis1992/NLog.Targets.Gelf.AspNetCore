@@ -1,7 +1,7 @@
 using NLog.Config;
 using NLog.Layouts;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf
+namespace NLog.Targets.Gelf.AspNetCore
 {
     [NLogConfigurationItem]
     public class GelfParameterInfo

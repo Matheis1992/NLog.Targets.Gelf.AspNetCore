@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf
+namespace NLog.Targets.Gelf.AspNetCore
 {
     public interface ITransportClient
     {

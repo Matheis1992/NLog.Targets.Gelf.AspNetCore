@@ -1,11 +1,11 @@
 using Moq;
 using Newtonsoft.Json.Linq;
-using NLog.Web.AspNetCore.Targets.Gelf.Tests.Resources;
+using NLog.Targets.Gelf.AspNetCore.Tests.Resources;
 using System;
 using System.Net;
 using Xunit;
 
-namespace NLog.Web.AspNetCore.Targets.Gelf.Tests
+namespace NLog.Targets.Gelf.AspNetCore.Tests
 {
     public class UdpTransportTest
     {

@@ -1,4 +1,4 @@
-namespace NLog.Web.AspNetCore.Targets.Gelf
+namespace NLog.Targets.Gelf.AspNetCore
 {
     public class ConverterConstants
     {
