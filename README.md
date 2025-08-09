@@ -4,7 +4,7 @@ Gelf4NLog is an [NLog] target implementation to push log messages to [GrayLog2].
 [![NuGet version](https://badge.fury.io/nu/NLog.Web.AspNetCore.Targets.Gelf.svg)](https://badge.fury.io/nu/NLog.Web.AspNetCore.Targets.Gelf)
 
 ## History
-Code forked from https://github.com/GokGokalp/NLog.Web.AspNetCore.Targets.Gelf which is a form from https://github.com/2020Legal/NLog.Targets.Gelf which is a fork from https://github.com/akurdyukov/Gelf4NLog who forked the origonal code from https://github.com/seymen/Gelf4NLog
+Code forked from https://github.com/GokGokalp/NLog.Web.AspNetCore.Targets.Gelf which is a fork from https://github.com/2020Legal/NLog.Targets.Gelf which is a fork from https://github.com/akurdyukov/Gelf4NLog who forked the origonal code from https://github.com/seymen/Gelf4NLog
 
 I transformed the project to .NET Core.
 
