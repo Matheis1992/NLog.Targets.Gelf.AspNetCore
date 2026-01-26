@@ -1,9 +1,9 @@
-using Newtonsoft.Json.Linq;
+using System;
 
 namespace NLog.Targets.Gelf.AspNetCore
 {
     public interface IConverter
     {
-        JObject GetGelfJson(LogEventInfo logEventInfo, string facility, string gelfVersion = "1.0");
+        string GetGelfJson(LogEventInfo logEventInfo, string facility, string gelfVersion = "1.0");
     }
 }

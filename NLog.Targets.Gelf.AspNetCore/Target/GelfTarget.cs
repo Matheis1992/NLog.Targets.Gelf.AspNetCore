@@ -1,6 +1,4 @@
-using Newtonsoft.Json;
 using NLog.Config;
-using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -89,10 +87,10 @@ namespace NLog.Targets.Gelf.AspNetCore
                 logEvent.Properties.Add(ConverterConstants.PromoteObjectPropertiesMarker, logEvent.Parameters.Last());
             }
 
-            var jsonObject = Converter.GetGelfJson(logEvent, Facility, GelfVersion);
-            if (jsonObject == null) return;
+            var json = Converter.GetGelfJson(logEvent, Facility, GelfVersion);
+            if (json == null) return;
 
-            _lazyITransport.Value.Send(_lazyIpEndoint.Value, jsonObject.ToString(Formatting.None, null));
+            _lazyITransport.Value.Send(_lazyIpEndoint.Value, json);
         }
     }
 }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text.Json;
 using Xunit;
 
 namespace NLog.Targets.Gelf.AspNetCore.Tests
@@ -15,15 +17,15 @@ namespace NLog.Targets.Gelf.AspNetCore.Tests
 
             // Act
             var gelfJson = converter.GetGelfJson(logEvent, "facility");
-
-            Assert.Equal("value", gelfJson.Value<string>("_test"));
+            var gelfJsonSer = JsonSerializer.Deserialize<Dictionary<string, object>>(gelfJson);
+            Assert.Equal("value", gelfJsonSer["_test"]?.ToString());
         }
 
         [Fact]
         public void ShouldGetGelfJsonDiscardMappedDiagnosticsLogicalContextDataIfPresentInLogEventInfo()
         {
             ScopeContext.PushProperty("test", "value");
-            
+
             var logEvent = LogEventInfo.Create(LogLevel.Info, "loggerName", null, "message");
             logEvent.Properties.Add("test", "anotherValue");
 
@@ -31,8 +33,8 @@ namespace NLog.Targets.Gelf.AspNetCore.Tests
 
             // Act
             var gelfJson = converter.GetGelfJson(logEvent, "facility");
-
-            Assert.Equal("anotherValue", gelfJson.Value<string>("_test"));
+            var gelfJsonSer = JsonSerializer.Deserialize<Dictionary<string, object>>(gelfJson);
+            Assert.Equal("anotherValue", gelfJsonSer["_test"]?.ToString());
         }
     }
 }

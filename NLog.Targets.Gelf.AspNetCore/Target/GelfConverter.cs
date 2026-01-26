@@ -1,9 +1,9 @@
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace NLog.Targets.Gelf.AspNetCore
 {
@@ -12,13 +12,13 @@ namespace NLog.Targets.Gelf.AspNetCore
         private const int SHORT_MESSAGE_MAXLENGTH = 250;
         private const int EXCEPTION_MESSAGE_DEPTH = 10;
 
-        public JObject GetGelfJson(LogEventInfo logEventInfo, string facility, string gelfVersion = "1.0")
+        public string GetGelfJson(LogEventInfo logEventInfo, string facility, string gelfVersion = "1.0")
         {
-            //Retrieve the formatted message from LogEventInfo
+            // Retrieve the formatted message from LogEventInfo
             var logEventMessage = logEventInfo.FormattedMessage;
             if (logEventMessage == null) return null;
 
-            //If we are dealing with an exception, pass exception properties to LogEventInfo properties
+            // If we are dealing with an exception, pass exception properties to LogEventInfo properties
             if (logEventInfo.Exception != null)
             {
                 string exceptionDetail;
@@ -31,56 +31,51 @@ namespace NLog.Targets.Gelf.AspNetCore
                 logEventInfo.Properties.Add("StackTrace", stackDetail);
             }
 
-            //Figure out the short message
+            // Figure out the short message
             var shortMessage = logEventMessage;
             if (shortMessage.Length > SHORT_MESSAGE_MAXLENGTH)
             {
                 shortMessage = shortMessage.Substring(0, SHORT_MESSAGE_MAXLENGTH);
             }
 
-            //Spec says: facility must be set by the client to "GELF" if empty
+            // Spec says: facility must be set by the client to "GELF" if empty
             facility = (string.IsNullOrEmpty(facility) ? "GELF" : facility);
             string line = logEventInfo.CallerLineNumber.ToString(CultureInfo.InvariantCulture);
             string file = logEventInfo.CallerFilePath is null ? string.Empty : logEventInfo.CallerFilePath;
 
-            JObject jsonObject;
+            // Build the JSON root object as a dictionary
+            var root = new Dictionary<string, object>(StringComparer.Ordinal);
 
-            //Construct the instance of GelfMessage
-            //See http://docs.graylog.org/en/3.0/pages/gelf.html#gelf-payload-specification "Specification (version 1.1)"
+            // Construct the instance of GelfMessage
+            // See http://docs.graylog.org/en/3.0/pages/gelf.html#gelf-payload-specification "Specification (version 1.1)"
             if (gelfVersion == "1.1")
             {
-                jsonObject = JObject.FromObject(new GelfMessageV1_1
-                {
-                    Version = gelfVersion,
-                    Host = Dns.GetHostName(),
-                    ShortMessage = shortMessage,
-                    FullMessage = logEventMessage,
-                    Timestamp = new DateTimeOffset(logEventInfo.TimeStamp).ToUnixTimeMilliseconds() / 1000.0,
-                    Level = GetSeverityLevel(logEventInfo.Level),
-                });
+                root["version"] = gelfVersion;
+                root["host"] = Dns.GetHostName();
+                root["short_message"] = shortMessage;
+                root["full_message"] = logEventMessage;
+                root["timestamp"] = new DateTimeOffset(logEventInfo.TimeStamp).ToUnixTimeMilliseconds() / 1000.0;
+                root["level"] = GetSeverityLevel(logEventInfo.Level);
 
-                //Spec says: facility, line and file fields are deprecated and should be sent as additional fields
+                // Deprecated fields become additional fields
                 logEventInfo.Properties.Add("facility", facility);
                 logEventInfo.Properties.Add("line", line);
                 logEventInfo.Properties.Add("file", file);
             }
             else
             {
-                jsonObject = JObject.FromObject(new GelfMessage
-                {
-                    Version = gelfVersion,
-                    Host = Dns.GetHostName(),
-                    ShortMessage = shortMessage,
-                    FullMessage = logEventMessage,
-                    Timestamp = logEventInfo.TimeStamp,
-                    Level = GetSeverityLevel(logEventInfo.Level),
-                    Facility = facility,
-                    Line = line,
-                    File = file,
-                });
+                root["version"] = gelfVersion;
+                root["host"] = Dns.GetHostName();
+                root["short_message"] = shortMessage;
+                root["full_message"] = logEventMessage;
+                root["timestamp"] = logEventInfo.TimeStamp;
+                root["level"] = GetSeverityLevel(logEventInfo.Level);
+                root["facility"] = facility;
+                root["line"] = line;
+                root["file"] = file;
             }
 
-            //Add any other interesting data to LogEventInfo properties
+            // Add any other interesting data to LogEventInfo properties
             logEventInfo.Properties.Add("LoggerName", logEventInfo.LoggerName);
 
             foreach (var property in ScopeContext.GetAllProperties())
@@ -91,30 +86,45 @@ namespace NLog.Targets.Gelf.AspNetCore
                 }
             }
 
-            //We will persist them "Additional Fields" according to Gelf spec
+            // We will persist them as "Additional Fields" according to GELF spec
             foreach (var property in logEventInfo.Properties)
             {
-                AddAdditionalField(jsonObject, property);
+                AddAdditionalField(root, property);
             }
 
-            return jsonObject;
+            var options = new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            };
+
+            return JsonSerializer.Serialize(root, options);
         }
 
-        private static void AddAdditionalField(IDictionary<string, JToken> jObject, KeyValuePair<object, object> property)
+        private static void AddAdditionalField(IDictionary<string, object> jObject, KeyValuePair<object, object> property)
         {
             if (property.Key == ConverterConstants.PromoteObjectPropertiesMarker)
             {
-                if (property.Value != null && property.Value is object)
+                if (property.Value != null)
                 {
                     try
                     {
-                        var jo = JObject.FromObject(property.Value);
-                        foreach (var joProp in jo)
+                        // Serialize the promoted object and iterate its JSON properties
+                        var serialized = JsonSerializer.Serialize(property.Value);
+                        using (var doc = JsonDocument.Parse(serialized))
                         {
-                            AddAdditionalField(jObject, new KeyValuePair<object, object>(joProp.Key, joProp.Value));
+                            if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                            {
+                                foreach (var joProp in doc.RootElement.EnumerateObject())
+                                {
+                                    AddAdditionalField(jObject, new KeyValuePair<object, object>(joProp.Name, joProp.Value));
+                                }
+                            }
                         }
                     }
-                    catch { }
+                    catch
+                    {
+                        // preserve original behavior: swallow errors when promoting properties
+                    }
                 }
                 return;
             }
@@ -122,18 +132,24 @@ namespace NLog.Targets.Gelf.AspNetCore
             var key = property.Key as string;
             if (key == null) return;
 
-            //According to the GELF spec, libraries should NOT allow to send id as additional field (_id)
-            //Server MUST skip the field because it could override the MongoDB _key field
+            // According to the GELF spec, libraries should NOT allow to send id as additional field (_id)
+            // Server MUST skip the field because it could override the MongoDB _key field
             if (key.Equals("id", StringComparison.OrdinalIgnoreCase))
                 key = "id_";
 
-            //According to the GELF spec, additional field keys should start with '_' to avoid collision
+            // According to the GELF spec, additional field keys should start with '_' to avoid collision
             if (key.StartsWith("_", StringComparison.OrdinalIgnoreCase) == false)
                 key = "_" + key;
 
-            JToken value = null;
+            object value = null;
             if (property.Value != null)
-                value = JToken.FromObject(property.Value);
+            {
+                // Preserve JsonElement values (from promoted object parsing) and keep other values as-is
+                if (property.Value is JsonElement je)
+                    value = je;
+                else
+                    value = property.Value;
+            }
 
             jObject.Add(key, value);
         }
@@ -166,7 +182,7 @@ namespace NLog.Targets.Gelf.AspNetCore
                 return 4;
             }
 
-            return 3; //LogLevel.Error
+            return 3; // LogLevel.Error
         }
 
         /// <summary>

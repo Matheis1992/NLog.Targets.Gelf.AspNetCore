@@ -1,25 +1,25 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace NLog.Targets.Gelf.AspNetCore
 {
     public class GelfMessageV1_1
     {
-        [JsonProperty("full_message")]
+        [JsonPropertyName("full_message")]
         public string FullMessage { get; set; }
 
-        [JsonProperty("host")]
+        [JsonPropertyName("host")]
         public string Host { get; set; }
 
-        [JsonProperty("level")]
+        [JsonPropertyName("level")]
         public int Level { get; set; }
 
-        [JsonProperty("short_message")]
+        [JsonPropertyName("short_message")]
         public string ShortMessage { get; set; }
 
-        [JsonProperty("timestamp")]
+        [JsonPropertyName("timestamp")]
         public double Timestamp { get; set; }
 
-        [JsonProperty("version")]
+        [JsonPropertyName("version")]
         public string Version { get; set; }
     }
 }

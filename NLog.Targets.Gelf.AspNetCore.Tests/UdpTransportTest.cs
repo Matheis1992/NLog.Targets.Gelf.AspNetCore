@@ -18,17 +18,15 @@ namespace NLog.Targets.Gelf.AspNetCore.Tests
                 var transport = new UdpTransport(transportClient.Object);
                 var converter = new Mock<IConverter>();
                 var dnslookup = new Mock<DnsBase>();
-                converter.Setup(c => c.GetGelfJson(It.IsAny<LogEventInfo>(), It.IsAny<string>(), It.IsAny<string>())).Returns(new JObject());
+                converter.Setup(c => c.GetGelfJson(It.IsAny<LogEventInfo>(), It.IsAny<string>(), It.IsAny<string>())).Returns(new JObject().ToString());
 
-                var target = new GelfTarget(new []{transport}, converter.Object, dnslookup.Object) {
-                    Endpoint = "udp://192.168.99.100:12201"
-                };
+                var target = new GelfTarget { Endpoint = "udp://192.168.99.100:12201" };
                 var logEventInfo = new LogEventInfo { Message = "Test Message" };
-                dnslookup.Setup(x => x.GetHostAddresses(It.IsAny<string>())).Returns(new[] { IPAddress.Parse("192.168.99.100") });
+                dnslookup.Setup(x => x.GetHostAddresses(It.IsAny<string>())).Returns([IPAddress.Parse("192.168.99.100")]);
 
                 target.WriteLogEventInfo(logEventInfo);
 
-                transportClient.Verify(t => t.Send(It.IsAny<byte[]>(), It.IsAny<Int32>(), It.IsAny<IPEndPoint>()), Times.Once());
+                transportClient.Verify(t => t.Send(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<IPEndPoint>()), Times.Once());
                 converter.Verify(c => c.GetGelfJson(It.IsAny<LogEventInfo>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once());
             }
 
@@ -37,20 +35,18 @@ namespace NLog.Targets.Gelf.AspNetCore.Tests
             {
                 var jsonObject = new JObject();
                 var message = ResourceHelper.GetResource("LongMessage.txt").ReadToEnd();
-                
+
                 jsonObject.Add("full_message", JToken.FromObject(message));
 
                 var converter = new Mock<IConverter>();
-                converter.Setup(c => c.GetGelfJson(It.IsAny<LogEventInfo>(), It.IsAny<string>(), It.IsAny<string>())).Returns(jsonObject).Verifiable();
+                converter.Setup(c => c.GetGelfJson(It.IsAny<LogEventInfo>(), It.IsAny<string>(), It.IsAny<string>())).Returns(jsonObject.ToString()).Verifiable();
                 var transportClient = new Mock<ITransportClient>();
-                transportClient.Setup(t => t.Send(It.IsAny<byte[]>(), It.IsAny<Int32>(), It.IsAny<IPEndPoint>())).Verifiable();
-               
+                transportClient.Setup(t => t.Send(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<IPEndPoint>())).Verifiable();
+
                 var transport = new UdpTransport(transportClient.Object);
                 var dnslookup = new Mock<DnsBase>();
-                dnslookup.Setup(x => x.GetHostAddresses(It.IsAny<string>())).Returns(new []{IPAddress.Parse("192.168.99.100")});
-                var target = new GelfTarget(new[] { transport }, converter.Object, dnslookup.Object) {
-                    Endpoint = "udp://192.168.99.100:12201"
-                };
+                dnslookup.Setup(x => x.GetHostAddresses(It.IsAny<string>())).Returns([IPAddress.Parse("192.168.99.100")]);
+                var target = new GelfTarget { Endpoint = "udp://192.168.99.100:12201" };
                 target.WriteLogEventInfo(new LogEventInfo());
 
                 converter.Verify(c => c.GetGelfJson(It.IsAny<LogEventInfo>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once());
